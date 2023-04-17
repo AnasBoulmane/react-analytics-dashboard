@@ -3,6 +3,8 @@ import dbPromise from 'db';
 import { firebaseDB } from 'firbaseConfig/Firebase';
 import { collection, doc, writeBatch, getDocs} from 'firebase/firestore';
 
+const firestoreCollection = collection(firebaseDB, 'seales_backup');
+
 export const backupSeales = async () => {
   const db = await dbPromise;
   const seales = await db.seales.find().exec();
@@ -18,7 +20,6 @@ export const backupSeales = async () => {
        const { orderNumber, ...sealData } = seal;
        sealData.orderNumber = orderNumber;
       // Create the seales_backup document
-      const firestoreCollection = collection(firebaseDB, 'seales_backup');
       const DocBackupRef = doc(firestoreCollection, orderNumber);
       // Add the sealesData document to the batch
       batch.set(DocBackupRef, sealData);
@@ -56,10 +57,9 @@ export const backupSeales = async () => {
 
   return replicationState;
 };
-
+// restore function
 export const restoreSeales = async () => {
   const db = await dbPromise;
-  const firestoreCollection = collection(firebaseDB, 'seales_backup');
   const sealesBackupSnapshot = await getDocs(firestoreCollection);
   const sealesData = sealesBackupSnapshot.docs.map((doc) => doc.data());
   await db.seales.bulkInsert(sealesData);
